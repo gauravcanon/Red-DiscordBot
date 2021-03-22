@@ -130,7 +130,6 @@ class Image(commands.Cog):
             )
             return
 
-        links = []
         headers = {"Authorization": "Client-ID {}".format(imgur_client_id)}
         url = self.imgur_base_url + "gallery/r/{}/{}/{}/0".format(subreddit, sort, window)
 
@@ -140,6 +139,7 @@ class Image(commands.Cog):
         if data["success"]:
             items = data["data"]
             if items:
+                links = []
                 for item in items[:count]:
                     link = item["gifv"] if "gifv" in item else item["link"]
                     links.append("{}\n{}".format(item["title"], link))

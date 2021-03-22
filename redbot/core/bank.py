@@ -185,8 +185,7 @@ def _encode_time(time: datetime) -> int:
         The timestamp of the datetime object.
 
     """
-    ret = int(time.timestamp())
-    return ret
+    return int(time.timestamp())
 
 
 def _decode_time(time: int) -> datetime:
@@ -291,10 +290,7 @@ async def set_balance(member: Union[discord.Member, discord.User], amount: int) 
         raise errors.BalanceTooHigh(
             user=member.display_name, max_balance=max_bal, currency_name=currency
         )
-    if await is_global():
-        group = _config.user(member)
-    else:
-        group = _config.member(member)
+    group = _config.user(member) if await is_global() else _config.member(member)
     await group.balance.set(amount)
 
     if await group.created_at() == 0:

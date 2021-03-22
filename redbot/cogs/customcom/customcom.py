@@ -91,17 +91,16 @@ class CommandObj:
 
             if msg.content.lower() == "exit()":
                 break
-            else:
-                try:
-                    this_args = ctx.cog.prepare_args(msg.content)
-                except ArgParseError as e:
-                    await ctx.send(e.args[0])
-                    continue
-                if args and args != this_args:
-                    await ctx.send(_("Random responses must take the same arguments!"))
-                    continue
-                args = args or this_args
-                responses.append(msg.content)
+            try:
+                this_args = ctx.cog.prepare_args(msg.content)
+            except ArgParseError as e:
+                await ctx.send(e.args[0])
+                continue
+            if args and args != this_args:
+                await ctx.send(_("Random responses must take the same arguments!"))
+                continue
+            args = args or this_args
+            responses.append(msg.content)
         return responses
 
     @staticmethod
@@ -429,15 +428,14 @@ class CustomCommands(commands.Cog):
                 cooldowns = (await self.commandobj.get(ctx.message, command))[1]
             except NotFound:
                 return await ctx.send(_("That command doesn't exist."))
-            if cooldowns:
-                cooldown = []
-                for per, rate in cooldowns.items():
-                    cooldown.append(
-                        _("A {} may call this command every {} seconds").format(per, rate)
-                    )
-                return await ctx.send("\n".join(cooldown))
-            else:
+            if not cooldowns:
                 return await ctx.send(_("This command has no cooldown."))
+            cooldown = []
+            for per, rate in cooldowns.items():
+                cooldown.append(
+                    _("A {} may call this command every {} seconds").format(per, rate)
+                )
+            return await ctx.send("\n".join(cooldown))
         per = {"server": "guild", "user": "member"}.get(per, per)
         allowed = ("guild", "member", "channel")
         if per not in allowed:
@@ -618,9 +616,7 @@ class CustomCommands(commands.Cog):
             )
             if isinstance(raw_response, list):
                 raw_response = random.choice(raw_response)
-            elif isinstance(raw_response, str):
-                pass
-            else:
+            elif not isinstance(raw_response, str):
                 raise NotFound()
             if cooldowns:
                 self.test_cooldowns(ctx, ctx.invoked_with, cooldowns)

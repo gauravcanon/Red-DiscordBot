@@ -157,17 +157,17 @@ class Reports(commands.Cog):
 
         async for guild in AsyncIter(self.bot.guilds, steps=100):
             x = guild.get_member(author.id)
-            if x is not None:
-                if await self.internal_filter(x, mod, perms):
-                    shared_guilds.append(guild)
-        if len(shared_guilds) == 0:
+            if x is not None and await self.internal_filter(x, mod, perms):
+                shared_guilds.append(guild)
+        if not shared_guilds:
             raise ValueError("No Qualifying Shared Guilds")
         if len(shared_guilds) == 1:
             return shared_guilds[0]
-        output = ""
         guilds = sorted(shared_guilds, key=lambda g: g.name)
-        for i, guild in enumerate(guilds, 1):
-            output += "{}: {}\n".format(i, guild.name)
+        output = "".join(
+            "{}: {}\n".format(i, guild.name) for i, guild in enumerate(guilds, 1)
+        )
+
         output += "\n{}".format(prompt)
 
         for page in pagify(output, delims=["\n"]):
@@ -325,12 +325,15 @@ class Reports(commands.Cog):
         """
         if ctx.author.id in self.user_cache:
             self.user_cache.remove(ctx.author.id)
-        if ctx.guild and ctx.invoked_subcommand is None:
-            if ctx.channel.permissions_for(ctx.guild.me).manage_messages:
-                try:
-                    await ctx.message.delete()
-                except discord.NotFound:
-                    pass
+        if (
+            ctx.guild
+            and ctx.invoked_subcommand is None
+            and ctx.channel.permissions_for(ctx.guild.me).manage_messages
+        ):
+            try:
+                await ctx.message.delete()
+            except discord.NotFound:
+                pass
 
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
@@ -338,7 +341,7 @@ class Reports(commands.Cog):
         oh dear....
         """
 
-        if not str(payload.emoji) == "\N{NEGATIVE SQUARED CROSS MARK}":
+        if str(payload.emoji) != "\N{NEGATIVE SQUARED CROSS MARK}":
             return
 
         _id = payload.message_id
@@ -346,9 +349,9 @@ class Reports(commands.Cog):
 
         if t is None:
             return
-        guild = t[0][0]
         tun = t[1]["tun"]
         if payload.user_id in [x.id for x in tun.members]:
+            guild = t[0][0]
             await set_contextual_locales_from_guild(self.bot, guild)
             await tun.react_close(
                 uid=payload.user_id, message=_("{closer} has closed the correspondence")

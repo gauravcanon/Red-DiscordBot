@@ -484,13 +484,13 @@ class General(commands.Cog):
         """
 
         try:
-            url = "https://api.urbandictionary.com/v0/define"
-
             params = {"term": str(word).lower()}
 
-            headers = {"content-type": "application/json"}
-
             async with aiohttp.ClientSession() as session:
+                url = "https://api.urbandictionary.com/v0/define"
+
+                headers = {"content-type": "application/json"}
+
                 async with session.get(url, headers=headers, params=params) as response:
                     data = await response.json()
 
@@ -528,7 +528,7 @@ class General(commands.Cog):
                     )
                     embeds.append(embed)
 
-                if embeds is not None and len(embeds) > 0:
+                if embeds is not None and embeds:
                     await menu(
                         ctx,
                         pages=embeds,
@@ -554,7 +554,7 @@ class General(commands.Cog):
                     message = message.format(description=description)
                     messages.append(message)
 
-                if messages is not None and len(messages) > 0:
+                if messages is not None and messages:
                     await menu(
                         ctx,
                         pages=messages,

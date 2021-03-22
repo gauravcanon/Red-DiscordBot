@@ -50,85 +50,82 @@ class Events(MixinMeta):
         else:  # if not enabled
             mentions = set(message.mentions)
 
-        if mention_spam["ban"]:
-            if len(mentions) >= mention_spam["ban"]:
-                try:
-                    await guild.ban(author, reason=_("Mention spam (Autoban)"))
-                except discord.HTTPException:
-                    log.warning(
-                        "Failed to ban a member ({member}) for mention spam in server {guild}.".format(
-                            member=author.id, guild=guild.id
-                        )
+        if mention_spam["ban"] and len(mentions) >= mention_spam["ban"]:
+            try:
+                await guild.ban(author, reason=_("Mention spam (Autoban)"))
+            except discord.HTTPException:
+                log.warning(
+                    "Failed to ban a member ({member}) for mention spam in server {guild}.".format(
+                        member=author.id, guild=guild.id
                     )
-                else:
-                    await modlog.create_case(
-                        self.bot,
-                        guild,
-                        message.created_at.replace(tzinfo=timezone.utc),
-                        "ban",
-                        author,
-                        guild.me,
-                        _("Mention spam (Autoban)"),
-                        until=None,
-                        channel=None,
-                    )
-                    return True
-
-        if mention_spam["kick"]:
-            if len(mentions) >= mention_spam["kick"]:
-                try:
-                    await guild.kick(author, reason=_("Mention Spam (Autokick)"))
-                except discord.HTTPException:
-                    log.warning(
-                        "Failed to kick a member ({member}) for mention spam in server {guild}".format(
-                            member=author.id, guild=guild.id
-                        )
-                    )
-                else:
-                    await modlog.create_case(
-                        self.bot,
-                        guild,
-                        message.created_at.replace(tzinfo=timezone.utc),
-                        "kick",
-                        author,
-                        guild.me,
-                        _("Mention spam (Autokick)"),
-                        until=None,
-                        channel=None,
-                    )
-                    return True
-
-        if mention_spam["warn"]:
-            if len(mentions) >= mention_spam["warn"]:
-                try:
-                    await author.send(_("Please do not mass mention people!"))
-                except (discord.HTTPException, discord.Forbidden):
-                    try:
-                        await message.channel.send(
-                            _("{member}, Please do not mass mention people!").format(
-                                member=author.mention
-                            )
-                        )
-                    except (discord.HTTPException, discord.Forbidden):
-                        log.warning(
-                            "Failed to warn a member ({member}) for mention spam in server {guild}".format(
-                                member=author.id, guild=guild.id
-                            )
-                        )
-                        return False
-
+                )
+            else:
                 await modlog.create_case(
                     self.bot,
                     guild,
                     message.created_at.replace(tzinfo=timezone.utc),
-                    "warning",
+                    "ban",
                     author,
                     guild.me,
-                    _("Mention spam (Autowarn)"),
+                    _("Mention spam (Autoban)"),
                     until=None,
                     channel=None,
                 )
                 return True
+
+        if mention_spam["kick"] and len(mentions) >= mention_spam["kick"]:
+            try:
+                await guild.kick(author, reason=_("Mention Spam (Autokick)"))
+            except discord.HTTPException:
+                log.warning(
+                    "Failed to kick a member ({member}) for mention spam in server {guild}".format(
+                        member=author.id, guild=guild.id
+                    )
+                )
+            else:
+                await modlog.create_case(
+                    self.bot,
+                    guild,
+                    message.created_at.replace(tzinfo=timezone.utc),
+                    "kick",
+                    author,
+                    guild.me,
+                    _("Mention spam (Autokick)"),
+                    until=None,
+                    channel=None,
+                )
+                return True
+
+        if mention_spam["warn"] and len(mentions) >= mention_spam["warn"]:
+            try:
+                await author.send(_("Please do not mass mention people!"))
+            except (discord.HTTPException, discord.Forbidden):
+                try:
+                    await message.channel.send(
+                        _("{member}, Please do not mass mention people!").format(
+                            member=author.mention
+                        )
+                    )
+                except (discord.HTTPException, discord.Forbidden):
+                    log.warning(
+                        "Failed to warn a member ({member}) for mention spam in server {guild}".format(
+                            member=author.id, guild=guild.id
+                        )
+                    )
+                    return False
+
+            await modlog.create_case(
+                self.bot,
+                guild,
+                message.created_at.replace(tzinfo=timezone.utc),
+                "warning",
+                author,
+                guild.me,
+                _("Mention spam (Autowarn)"),
+                until=None,
+                channel=None,
+            )
+            return True
         return False
 
     @commands.Cog.listener()
@@ -160,19 +157,20 @@ class Events(MixinMeta):
 
     @commands.Cog.listener()
     async def on_user_update(self, before: discord.User, after: discord.User):
-        if before.name != after.name:
-            track_all_names = await self.config.track_all_names()
-            if not track_all_names:
-                return
-            async with self.config.user(before).past_names() as name_list:
-                while None in name_list:  # clean out null entries from a bug
-                    name_list.remove(None)
-                if before.name in name_list:
-                    # Ensure order is maintained without duplicates occurring
-                    name_list.remove(before.name)
-                name_list.append(before.name)
-                while len(name_list) > 20:
-                    name_list.pop(0)
+        if before.name == after.name:
+            return
+        track_all_names = await self.config.track_all_names()
+        if not track_all_names:
+            return
+        async with self.config.user(before).past_names() as name_list:
+            while None in name_list:  # clean out null entries from a bug
+                name_list.remove(None)
+            if before.name in name_list:
+                # Ensure order is maintained without duplicates occurring
+                name_list.remove(before.name)
+            name_list.append(before.name)
+            while len(name_list) > 20:
+                name_list.pop(0)
 
     @commands.Cog.listener()
     async def on_member_update(self, before: discord.Member, after: discord.Member):

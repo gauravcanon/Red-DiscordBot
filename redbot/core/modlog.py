@@ -59,12 +59,12 @@ async def _process_data_deletion(
     if requester != "discord_deleted_user":
         return
 
-    # Oh, how I wish it was as simple as I wanted...
-
-    key_paths = []
-
     async with _data_deletion_lock:
         all_cases = await _config.custom(_CASES).all()
+        # Oh, how I wish it was as simple as I wanted...
+
+        key_paths = []
+
         async for guild_id_str, guild_cases in AsyncIter(all_cases.items(), steps=100):
             async for case_num_str, case in AsyncIter(guild_cases.items(), steps=100):
                 for keyname in ("user", "moderator", "amended_by"):
@@ -484,11 +484,8 @@ class Case:
             amended_by = self.amended_by
         else:
             amended_by = self.amended_by.id
-        if isinstance(self.user, int):
-            user_id = self.user
-        else:
-            user_id = self.user.id
-        data = {
+        user_id = self.user if isinstance(self.user, int) else self.user.id
+        return {
             "case_number": self.case_number,
             "action_type": self.action_type,
             "guild": self.guild.id,
@@ -503,7 +500,6 @@ class Case:
             "modified_at": self.modified_at,
             "message": self.message.id if hasattr(self.message, "id") else None,
         }
-        return data
 
     @classmethod
     async def from_json(
@@ -560,10 +556,7 @@ class Case:
             user_object = kwargs.get(user_key)
             if user_object is None:
                 user_id = data.get(user_key)
-                if user_id is None:
-                    user_object = None
-                else:
-                    user_object = bot.get_user(user_id) or user_id
+                user_object = None if user_id is None else bot.get_user(user_id) or user_id
             user_objects[user_key] = user_object
 
         channel = kwargs.get("channel") or guild.get_channel(data["channel"]) or data["channel"]

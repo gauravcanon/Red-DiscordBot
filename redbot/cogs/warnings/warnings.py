@@ -528,12 +528,12 @@ class Warnings(commands.Cog):
             user = ctx.guild.get_member(userid)
             user = user or namedtuple("Member", "id guild")(userid, ctx.guild)
 
-        msg = ""
         member_settings = self.config.member(user)
         async with member_settings.warnings() as user_warnings:
             if not user_warnings.keys():  # no warnings for the user
                 await ctx.send(_("That user has no warnings!"))
             else:
+                msg = ""
                 for key in user_warnings.keys():
                     mod_id = user_warnings[key]["mod"]
                     if mod_id == 0xDE1:
@@ -562,12 +562,12 @@ class Warnings(commands.Cog):
 
         user = ctx.author
 
-        msg = ""
         member_settings = self.config.member(user)
         async with member_settings.warnings() as user_warnings:
             if not user_warnings.keys():  # no warnings for the user
                 await ctx.send(_("You have no warnings!"))
             else:
+                msg = ""
                 for key in user_warnings.keys():
                     mod_id = user_warnings[key]["mod"]
                     if mod_id == 0xDE1:
@@ -621,10 +621,9 @@ class Warnings(commands.Cog):
         async with member_settings.warnings() as user_warnings:
             if warn_id not in user_warnings.keys():
                 return await ctx.send(_("That warning doesn't exist!"))
-            else:
-                current_point_count -= user_warnings[warn_id]["points"]
-                await member_settings.total_points.set(current_point_count)
-                user_warnings.pop(warn_id)
+            current_point_count -= user_warnings[warn_id]["points"]
+            await member_settings.total_points.set(current_point_count)
+            user_warnings.pop(warn_id)
         await modlog.create_case(
             self.bot,
             ctx.guild,

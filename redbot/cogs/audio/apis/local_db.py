@@ -218,10 +218,7 @@ class BaseWrapper:
                 try:
                     row_result = future.result()
                     rows = row_result.fetchall()
-                    if rows:
-                        row = random.choice(rows)
-                    else:
-                        row = None
+                    row = random.choice(rows) if rows else None
                 except Exception as exc:
                     debug_exc_log(log, exc, "Failed to completed random fetch from database")
         if not row:

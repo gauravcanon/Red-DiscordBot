@@ -410,10 +410,7 @@ class Core(commands.commands._RuleDropper, commands.Cog, CoreLogic):
         days_since = (datetime.datetime.utcnow() - since).days
 
         app_info = await self.bot.application_info()
-        if app_info.team:
-            owner = app_info.team.name
-        else:
-            owner = app_info.owner
+        owner = app_info.team.name if app_info.team else app_info.owner
         custom_info = await self.bot._config.custom_info()
 
         pypi_version, py_version_req = await fetch_latest_red_version_info()
@@ -1161,11 +1158,7 @@ class Core(commands.commands._RuleDropper, commands.Cog, CoreLogic):
         """Sends to the owner the last command exception that has occurred.
 
         If public (yes is specified), it will be sent to the chat instead."""
-        if not public:
-            destination = ctx.author
-        else:
-            destination = ctx.channel
-
+        destination = ctx.author if not public else ctx.channel
         if self.bot._last_exception:
             for page in pagify(self.bot._last_exception, shorten_by=10):
                 try:
@@ -1384,7 +1377,7 @@ class Core(commands.commands._RuleDropper, commands.Cog, CoreLogic):
             output.append(formed)
 
         if failed_with_reason:
-            reasons = "\n".join([f"`{x}`: {y}" for x, y in failed_with_reason])
+            reasons = "\n".join(f"`{x}`: {y}" for x, y in failed_with_reason)
             if len(failed_with_reason) == 1:
                 formed = _(
                     "This package could not be loaded for the following reason:\n\n{reason}"
@@ -1518,7 +1511,7 @@ class Core(commands.commands._RuleDropper, commands.Cog, CoreLogic):
             output.append(formed)
 
         if failed_with_reason:
-            reasons = "\n".join([f"`{x}`: {y}" for x, y in failed_with_reason])
+            reasons = "\n".join(f"`{x}`: {y}" for x, y in failed_with_reason)
             if len(failed_with_reason) == 1:
                 formed = _(
                     "This package could not be reloaded for the following reason:\n\n{reason}"
@@ -1553,10 +1546,10 @@ class Core(commands.commands._RuleDropper, commands.Cog, CoreLogic):
     @checks.is_owner()
     async def _shutdown(self, ctx: commands.Context, silently: bool = False):
         """Shuts down the bot."""
-        wave = "\N{WAVING HAND SIGN}"
-        skin = "\N{EMOJI MODIFIER FITZPATRICK TYPE-3}"
         with contextlib.suppress(discord.HTTPException):
             if not silently:
+                wave = "\N{WAVING HAND SIGN}"
+                skin = "\N{EMOJI MODIFIER FITZPATRICK TYPE-3}"
                 await ctx.send(_("Shutting down... ") + wave + skin)
         await ctx.bot.shutdown()
 
@@ -2606,11 +2599,7 @@ class Core(commands.commands._RuleDropper, commands.Cog, CoreLogic):
 
             if send_embed:
 
-                if not is_dm:
-                    color = await ctx.bot.get_embed_color(destination)
-                else:
-                    color = ctx.bot._color
-
+                color = ctx.bot._color if is_dm else await ctx.bot.get_embed_color(destination)
                 e = discord.Embed(colour=color, description=message)
                 if author.avatar_url:
                     e.set_author(name=description, icon_url=author.avatar_url)
@@ -2878,10 +2867,7 @@ class Core(commands.commands._RuleDropper, commands.Cog, CoreLogic):
         Adds a user to the blocklist.
         """
         for user in users:
-            if isinstance(user, int):
-                user_obj = discord.Object(id=user)
-            else:
-                user_obj = user
+            user_obj = discord.Object(id=user) if isinstance(user, int) else user
             if await ctx.bot.is_owner(user_obj):
                 await ctx.send(_("You cannot add an owner to the blocklist!"))
                 return
@@ -3668,9 +3654,14 @@ class Core(commands.commands._RuleDropper, commands.Cog, CoreLogic):
         if await self.bot._ignored_cache.get_ignored_guild(ctx.guild):
             return _("This server is currently being ignored.")
         for channel in ctx.guild.text_channels:
-            if channel.category and channel.category not in category_channels:
-                if await self.bot._ignored_cache.get_ignored_channel(channel.category):
-                    category_channels.append(channel.category)
+            if (
+                channel.category
+                and channel.category not in category_channels
+                and await self.bot._ignored_cache.get_ignored_channel(
+                    channel.category
+                )
+            ):
+                category_channels.append(channel.category)
             if await self.bot._ignored_cache.get_ignored_channel(channel, check_category=False):
                 text_channels.append(channel)
 
@@ -3678,10 +3669,9 @@ class Core(commands.commands._RuleDropper, commands.Cog, CoreLogic):
             humanize_list([c.name for c in category_channels]) if category_channels else "None"
         )
         chan_str = humanize_list([c.mention for c in text_channels]) if text_channels else "None"
-        msg = _("Currently ignored categories: {categories}\nChannels: {channels}").format(
-            categories=cat_str, channels=chan_str
-        )
-        return msg
+        return _(
+            "Currently ignored categories: {categories}\nChannels: {channels}"
+        ).format(categories=cat_str, channels=chan_str)
 
     # Removing this command from forks is a violation of the GPLv3 under which it is licensed.
     # Otherwise interfering with the ability for this command to be accessible is also a violation.

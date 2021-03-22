@@ -100,10 +100,7 @@ class PlayerUtilities(MixinMeta, metaclass=CompositeMetaClass):
         if await self.bot.is_mod(member):
             return True
 
-        if await self.maybe_move_player(ctx):
-            return True
-
-        return False
+        return bool(await self.maybe_move_player(ctx))
 
     async def is_requester_alone(self, ctx: commands.Context) -> bool:
         channel_members = self.rgetattr(ctx, "guild.me.voice.channel.members", [])
@@ -150,7 +147,7 @@ class PlayerUtilities(MixinMeta, metaclass=CompositeMetaClass):
                 )
             await self.send_embed_msg(ctx, embed=embed)
             return
-        elif autoplay and not player.queue:
+        elif not player.queue:
             embed = discord.Embed(
                 title=_("Track Skipped"),
                 description=await self.get_track_description(
@@ -198,10 +195,7 @@ class PlayerUtilities(MixinMeta, metaclass=CompositeMetaClass):
         player.queue += queue_to_append
 
     def update_player_lock(self, ctx: commands.Context, true_or_false: bool) -> None:
-        if true_or_false:
-            self.play_lock[ctx.message.guild.id] = True
-        else:
-            self.play_lock[ctx.message.guild.id] = False
+        self.play_lock[ctx.message.guild.id] = true_or_false
 
     def _player_check(self, ctx: commands.Context) -> bool:
         if self.lavalink_connection_aborted:
@@ -226,10 +220,7 @@ class PlayerUtilities(MixinMeta, metaclass=CompositeMetaClass):
     async def _get_spotify_tracks(
         self, ctx: commands.Context, query: Query, forced: bool = False
     ) -> Union[discord.Message, List[lavalink.Track], lavalink.Track]:
-        if ctx.invoked_with in ["play", "genre"]:
-            enqueue_tracks = True
-        else:
-            enqueue_tracks = False
+        enqueue_tracks = ctx.invoked_with in ["play", "genre"]
         player = lavalink.get_player(ctx.guild.id)
         api_data = await self._check_api_tokens()
         if any([not api_data["spotify_client_id"], not api_data["spotify_client_secret"]]):
@@ -704,11 +695,7 @@ class PlayerUtilities(MixinMeta, metaclass=CompositeMetaClass):
         except AttributeError:
             return False
 
-        if not ctx.author.voice:
-            user_channel = None
-        else:
-            user_channel = ctx.author.voice.channel
-
+        user_channel = None if not ctx.author.voice else ctx.author.voice.channel
         if in_channel == 0 and user_channel:
             if (
                 (player.channel != user_channel)
@@ -726,6 +713,4 @@ class PlayerUtilities(MixinMeta, metaclass=CompositeMetaClass):
         if track.is_stream:
             return True
         length = track.length / 1000
-        if length > maxlength:
-            return False
-        return True
+        return length <= maxlength

@@ -155,8 +155,8 @@ class GlobalCacheWrapper:
     async def report_invalid(self, id: str) -> None:
         if not self.cog.global_api_user.get("can_delete"):
             return
-        api_url = f"{_API_URL}api/v2/queries/es/id"
         with contextlib.suppress(Exception):
+            api_url = f"{_API_URL}api/v2/queries/es/id"
             async with self.session.delete(
                 api_url,
                 headers={"Authorization": self.api_key, "X-Token": self._handshake_token},

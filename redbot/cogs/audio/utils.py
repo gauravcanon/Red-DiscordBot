@@ -171,7 +171,7 @@ class Notifier:
 
         Based on the message found in :variable:`Notifier.updates` as per the `key` param
         """
-        if self.last_msg_time + self.cooldown > time.time() and not current == total:
+        if self.last_msg_time + self.cooldown > time.time() and current != total:
             return
         if self.color is None:
             self.color = await self.context.embed_colour()

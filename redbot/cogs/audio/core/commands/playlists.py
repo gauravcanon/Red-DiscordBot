@@ -608,14 +608,10 @@ class PlaylistCommands(MixinMeta, metaclass=CompositeMetaClass):
                 track_keys = track._info.keys()
                 track_values = track._info.values()
                 track_id = track.track_identifier
-                track_info = {}
-                for k, v in zip(track_keys, track_values):
-                    track_info[k] = v
+                track_info = {k: v for k, v in zip(track_keys, track_values)}
                 keys = ["track", "info"]
                 values = [track_id, track_info]
-                track_obj = {}
-                for key, value in zip(keys, values):
-                    track_obj[key] = value
+                track_obj = {key: value for key, value in zip(keys, values)}
                 tracklist.append(track_obj)
 
         final_count = len(tracklist)
@@ -1709,58 +1705,7 @@ class PlaylistCommands(MixinMeta, metaclass=CompositeMetaClass):
                 scope_name = self.humanize_scope(
                     scope, ctx=guild if scope == PlaylistScope.GUILD.value else author
                 )
-                if added or removed:
-                    _colour = await ctx.embed_colour()
-                    removed_embeds = []
-                    added_embeds = []
-                    total_added = len(added)
-                    total_removed = len(removed)
-                    total_pages = math.ceil(total_removed / 10) + math.ceil(total_added / 10)
-                    page_count = 0
-                    if removed:
-                        removed_text = ""
-                        async for i, track in AsyncIter(removed).enumerate(start=1):
-                            if len(track.title) > 40:
-                                track_title = str(track.title).replace("[", "")
-                                track_title = "{}...".format((track_title[:40]).rstrip(" "))
-                            else:
-                                track_title = track.title
-                            removed_text += f"`{i}.` **[{track_title}]({track.uri})**\n"
-                            if i % 10 == 0 or i == total_removed:
-                                page_count += 1
-                                embed = discord.Embed(
-                                    title=_("Tracks removed"),
-                                    colour=_colour,
-                                    description=removed_text,
-                                )
-                                text = _("Page {page_num}/{total_pages}").format(
-                                    page_num=page_count, total_pages=total_pages
-                                )
-                                embed.set_footer(text=text)
-                                removed_embeds.append(embed)
-                                removed_text = ""
-                    if added:
-                        added_text = ""
-                        async for i, track in AsyncIter(added).enumerate(start=1):
-                            if len(track.title) > 40:
-                                track_title = str(track.title).replace("[", "")
-                                track_title = "{}...".format((track_title[:40]).rstrip(" "))
-                            else:
-                                track_title = track.title
-                            added_text += f"`{i}.` **[{track_title}]({track.uri})**\n"
-                            if i % 10 == 0 or i == total_added:
-                                page_count += 1
-                                embed = discord.Embed(
-                                    title=_("Tracks added"), colour=_colour, description=added_text
-                                )
-                                text = _("Page {page_num}/{total_pages}").format(
-                                    page_num=page_count, total_pages=total_pages
-                                )
-                                embed.set_footer(text=text)
-                                added_embeds.append(embed)
-                                added_text = ""
-                    embeds = removed_embeds + added_embeds
-                else:
+                if not added and not removed:
                     return await self.send_embed_msg(
                         ctx,
                         title=_("Playlist Has Not Been Modified"),
@@ -1768,6 +1713,56 @@ class PlaylistCommands(MixinMeta, metaclass=CompositeMetaClass):
                             id=playlist.id, name=playlist.name, scope=scope_name
                         ),
                     )
+                _colour = await ctx.embed_colour()
+                removed_embeds = []
+                added_embeds = []
+                total_added = len(added)
+                total_removed = len(removed)
+                total_pages = math.ceil(total_removed / 10) + math.ceil(total_added / 10)
+                page_count = 0
+                if removed:
+                    removed_text = ""
+                    async for i, track in AsyncIter(removed).enumerate(start=1):
+                        if len(track.title) > 40:
+                            track_title = str(track.title).replace("[", "")
+                            track_title = "{}...".format((track_title[:40]).rstrip(" "))
+                        else:
+                            track_title = track.title
+                        removed_text += f"`{i}.` **[{track_title}]({track.uri})**\n"
+                        if i % 10 == 0 or i == total_removed:
+                            page_count += 1
+                            embed = discord.Embed(
+                                title=_("Tracks removed"),
+                                colour=_colour,
+                                description=removed_text,
+                            )
+                            text = _("Page {page_num}/{total_pages}").format(
+                                page_num=page_count, total_pages=total_pages
+                            )
+                            embed.set_footer(text=text)
+                            removed_embeds.append(embed)
+                            removed_text = ""
+                if added:
+                    added_text = ""
+                    async for i, track in AsyncIter(added).enumerate(start=1):
+                        if len(track.title) > 40:
+                            track_title = str(track.title).replace("[", "")
+                            track_title = "{}...".format((track_title[:40]).rstrip(" "))
+                        else:
+                            track_title = track.title
+                        added_text += f"`{i}.` **[{track_title}]({track.uri})**\n"
+                        if i % 10 == 0 or i == total_added:
+                            page_count += 1
+                            embed = discord.Embed(
+                                title=_("Tracks added"), colour=_colour, description=added_text
+                            )
+                            text = _("Page {page_num}/{total_pages}").format(
+                                page_num=page_count, total_pages=total_pages
+                            )
+                            embed.set_footer(text=text)
+                            added_embeds.append(embed)
+                            added_text = ""
+                embeds = removed_embeds + added_embeds
         if embeds:
             await menu(ctx, embeds, DEFAULT_CONTROLS)
 

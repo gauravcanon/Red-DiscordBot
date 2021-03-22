@@ -81,7 +81,7 @@ class ModInfo(MixinMeta):
             c_status = _("Custom: {emoji} {name}").format(emoji=a.emoji, name=a.name)
         elif a.emoji:
             c_status = _("Custom: {emoji}").format(emoji=a.emoji)
-        elif a.name:
+        else:
             c_status = _("Custom: {name}").format(name=a.name)
         return c_status, discord.ActivityType.custom
 

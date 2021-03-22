@@ -100,11 +100,10 @@ class MiscellaneousCommands(MixinMeta, metaclass=CompositeMetaClass):
         async def _usercount(req_username):
             if req_username in requesters["users"]:
                 requesters["users"][req_username]["songcount"] += 1
-                requesters["total"] += 1
             else:
-                requesters["users"][req_username] = {}
-                requesters["users"][req_username]["songcount"] = 1
-                requesters["total"] += 1
+                requesters["users"][req_username] = {"songcount": 1}
+
+            requesters["total"] += 1
 
         async for track in AsyncIter(queue_tracks):
             req_username = "{}#{}".format(track.requester.name, track.requester.discriminator)

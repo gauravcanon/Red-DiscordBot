@@ -28,9 +28,8 @@ def confirm(text: str, default: Optional[bool] = None) -> bool:
             return True
         if value in ("n", "no"):
             return False
-        if value == "":
-            if default is not None:
-                return default
+        if value == "" and default is not None:
+            return default
         print("Error: invalid input")
 
 
@@ -65,9 +64,10 @@ async def interactive_config(red, token_set, prefix_set, *, print_header=True):
         )
         while not prefix:
             prefix = input("Prefix> ")
-            if len(prefix) > 10:
-                if not confirm("Your prefix seems overly long. Are you sure that it's correct?"):
-                    prefix = ""
+            if len(prefix) > 10 and not confirm(
+                "Your prefix seems overly long. Are you sure that it's correct?"
+            ):
+                prefix = ""
             if prefix:
                 await red._config.prefix.set([prefix])
 
@@ -280,9 +280,5 @@ def parse_cli_flags(args):
 
     args = parser.parse_args(args)
 
-    if args.prefix:
-        args.prefix = sorted(args.prefix, reverse=True)
-    else:
-        args.prefix = []
-
+    args.prefix = sorted(args.prefix, reverse=True) if args.prefix else []
     return args

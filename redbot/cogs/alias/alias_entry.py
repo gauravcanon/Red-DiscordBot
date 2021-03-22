@@ -169,10 +169,12 @@ class AliasCache:
         if self._cache_enabled:
             if alias_name in self._aliases[None]:
                 return self._aliases[None][alias_name]
-            if guild is not None:
-                if guild.id in self._aliases:
-                    if alias_name in self._aliases[guild.id]:
-                        return self._aliases[guild.id][alias_name]
+            if (
+                guild is not None
+                and guild.id in self._aliases
+                and alias_name in self._aliases[guild.id]
+            ):
+                return self._aliases[guild.id][alias_name]
         else:
             if guild:
                 server_aliases = [
@@ -228,11 +230,7 @@ class AliasCache:
     async def delete_alias(
         self, ctx: commands.Context, alias_name: str, global_: bool = False
     ) -> bool:
-        if global_:
-            settings = self.config
-        else:
-            settings = self.config.guild(ctx.guild)
-
+        settings = self.config if global_ else self.config.guild(ctx.guild)
         async with settings.entries() as aliases:
             for alias in aliases:
                 if alias["name"] == alias_name:

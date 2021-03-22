@@ -185,13 +185,11 @@ class ModSettings(MixinMeta):
 
         mismatch_message = ""
 
-        if mention_spam["kick"]:
-            if max_mentions >= mention_spam["kick"]:
-                mismatch_message += _("\nAutowarn is equal to or higher than autokick.")
+        if mention_spam["kick"] and max_mentions >= mention_spam["kick"]:
+            mismatch_message += _("\nAutowarn is equal to or higher than autokick.")
 
-        if mention_spam["ban"]:
-            if max_mentions >= mention_spam["ban"]:
-                mismatch_message += _("\nAutowarn is equal to or higher than autoban.")
+        if mention_spam["ban"] and max_mentions >= mention_spam["ban"]:
+            mismatch_message += _("\nAutowarn is equal to or higher than autoban.")
 
         await self.config.guild(ctx.guild).mention_spam.warn.set(max_mentions)
         await ctx.send(
@@ -225,13 +223,11 @@ class ModSettings(MixinMeta):
 
         mismatch_message = ""
 
-        if mention_spam["warn"]:
-            if max_mentions <= mention_spam["warn"]:
-                mismatch_message += _("\nAutokick is equal to or lower than autowarn.")
+        if mention_spam["warn"] and max_mentions <= mention_spam["warn"]:
+            mismatch_message += _("\nAutokick is equal to or lower than autowarn.")
 
-        if mention_spam["ban"]:
-            if max_mentions >= mention_spam["ban"]:
-                mismatch_message += _("\nAutokick is equal to or higher than autoban.")
+        if mention_spam["ban"] and max_mentions >= mention_spam["ban"]:
+            mismatch_message += _("\nAutokick is equal to or higher than autoban.")
 
         await self.config.guild(ctx.guild).mention_spam.kick.set(max_mentions)
         await ctx.send(
@@ -264,13 +260,11 @@ class ModSettings(MixinMeta):
 
         mismatch_message = ""
 
-        if mention_spam["warn"]:
-            if max_mentions <= mention_spam["warn"]:
-                mismatch_message += _("\nAutoban is equal to or lower than autowarn.")
+        if mention_spam["warn"] and max_mentions <= mention_spam["warn"]:
+            mismatch_message += _("\nAutoban is equal to or lower than autowarn.")
 
-        if mention_spam["kick"]:
-            if max_mentions <= mention_spam["kick"]:
-                mismatch_message += _("\nAutoban is equal to or lower than autokick.")
+        if mention_spam["kick"] and max_mentions <= mention_spam["kick"]:
+            mismatch_message += _("\nAutoban is equal to or lower than autokick.")
 
         await self.config.guild(ctx.guild).mention_spam.ban.set(max_mentions)
         await ctx.send(

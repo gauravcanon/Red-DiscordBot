@@ -54,7 +54,7 @@ class Dev(commands.Cog):
 
     @staticmethod
     async def maybe_await(coro):
-        for i in range(2):
+        for _ in range(2):
             if inspect.isawaitable(coro):
                 coro = await coro
             else:

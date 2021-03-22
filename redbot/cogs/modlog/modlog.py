@@ -152,7 +152,7 @@ class ModLog(commands.Cog):
             embed_requested = await ctx.embed_requested()
             if embed_requested:
                 rendered_cases = [await case.message_content(embed=True) for case in cases]
-            elif not embed_requested:
+            else:
                 rendered_cases = []
                 for case in cases:
                     message = _("{case}\n**Timestamp:** {timestamp}").format(
@@ -188,17 +188,16 @@ class ModLog(commands.Cog):
             if not cases:
                 return await ctx.send(_("That user does not have any cases."))
 
-            rendered_cases = []
-            message = ""
-            for case in cases:
-                message += _("{case}\n**Timestamp:** {timestamp}\n\n").format(
+            message = "".join(_("{case}\n**Timestamp:** {timestamp}\n\n").format(
                     case=await case.message_content(embed=False),
                     timestamp=datetime.utcfromtimestamp(case.created_at).strftime(
                         "%Y-%m-%d %H:%M:%S UTC"
                     ),
-                )
-            for page in pagify(message, ["\n\n", "\n"], priority=True):
-                rendered_cases.append(page)
+                ) for case in cases)
+            rendered_cases = [
+                page for page in pagify(message, ["\n\n", "\n"], priority=True)
+            ]
+
         await menu(ctx, rendered_cases, DEFAULT_CONTROLS)
 
     @commands.command()

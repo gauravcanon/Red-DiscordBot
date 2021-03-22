@@ -582,7 +582,7 @@ class Permissions(commands.Cog):
 
         Handles config.
         """
-        if rule is True:
+        if rule:
             cog_or_cmd.obj.allow_for(model_id, guild_id=guild_id)
         else:
             cog_or_cmd.obj.deny_to(model_id, guild_id=guild_id)
@@ -657,7 +657,7 @@ class Permissions(commands.Cog):
         if rules is None:
             rules = {}
         YAML_SCHEMA.validate(rules)
-        if update is False:
+        if not update:
             await self._clear_rules(guild_id)
 
         for category, getter in ((COG, self.bot.get_cog), (COMMAND, self.bot.get_command)):

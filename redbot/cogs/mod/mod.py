@@ -129,10 +129,7 @@ class Mod(
             guild_dict = await self.config.all_guilds()
             async for guild_id, info in AsyncIter(guild_dict.items(), steps=25):
                 delete_repeats = info.get("delete_repeats", False)
-                if delete_repeats:
-                    val = 3
-                else:
-                    val = -1
+                val = 3 if delete_repeats else -1
                 await self.config.guild_from_id(guild_id).delete_repeats.set(val)
             await self.config.version.set("1.0.0")  # set version of last update
         if await self.config.version() < "1.1.0":
@@ -146,7 +143,7 @@ class Mod(
                     self.bot.loop.create_task(send_to_owners_with_prefix_replaced(self.bot, msg))
                     message_sent = True
                     break
-            if message_sent is False:
+            if not message_sent:
                 async for e in AsyncIter((await self.config.all_guilds()).values(), steps=25):
                     if e["ignored"] is not False:
                         msg = _(

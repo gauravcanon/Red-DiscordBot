@@ -226,29 +226,31 @@ class DpyEvents(MixinMeta, metaclass=CompositeMetaClass):
             await self.bot.on_command_error(ctx, error, unhandled_by_cog=True)
 
     def cog_unload(self) -> None:
-        if not self.cog_cleaned_up:
-            self.bot.dispatch("red_audio_unload", self)
-            self.session.detach()
-            self.bot.loop.create_task(self._close_database())
-            if self.player_automated_timer_task:
-                self.player_automated_timer_task.cancel()
+        if self.cog_cleaned_up:
+            return
 
-            if self.lavalink_connect_task:
-                self.lavalink_connect_task.cancel()
+        self.bot.dispatch("red_audio_unload", self)
+        self.session.detach()
+        self.bot.loop.create_task(self._close_database())
+        if self.player_automated_timer_task:
+            self.player_automated_timer_task.cancel()
 
-            if self.cog_init_task:
-                self.cog_init_task.cancel()
+        if self.lavalink_connect_task:
+            self.lavalink_connect_task.cancel()
 
-            if self._restore_task:
-                self._restore_task.cancel()
+        if self.cog_init_task:
+            self.cog_init_task.cancel()
 
-            lavalink.unregister_event_listener(self.lavalink_event_handler)
-            lavalink.unregister_update_listener(self.lavalink_update_handler)
-            self.bot.loop.create_task(lavalink.close())
-            if self.player_manager is not None:
-                self.bot.loop.create_task(self.player_manager.shutdown())
+        if self._restore_task:
+            self._restore_task.cancel()
 
-            self.cog_cleaned_up = True
+        lavalink.unregister_event_listener(self.lavalink_event_handler)
+        lavalink.unregister_update_listener(self.lavalink_update_handler)
+        self.bot.loop.create_task(lavalink.close())
+        if self.player_manager is not None:
+            self.bot.loop.create_task(self.player_manager.shutdown())
+
+        self.cog_cleaned_up = True
 
     @commands.Cog.listener()
     async def on_voice_state_update(

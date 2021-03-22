@@ -357,7 +357,10 @@ class EqualizerCommands(MixinMeta, metaclass=CompositeMetaClass):
         except ValueError:
             band_number = 1000
 
-        if band_number not in range(0, bands_num) and band_name_or_position not in band_names:
+        if (
+            band_number not in range(bands_num)
+            and band_name_or_position not in band_names
+        ):
             return await self.send_embed_msg(
                 ctx,
                 title=_("Invalid Band"),

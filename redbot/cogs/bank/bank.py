@@ -22,9 +22,7 @@ def is_owner_if_bank_global():
     async def pred(ctx: commands.Context):
         author = ctx.author
         if not await bank.is_global():
-            if not ctx.guild:
-                return False
-            return True
+            return bool(ctx.guild)
         else:
             return await ctx.bot.is_owner(author)
 
@@ -88,7 +86,7 @@ class Bank(commands.Cog):
         cur_setting = await bank.is_global()
 
         word = _("per-server") if cur_setting else _("global")
-        if confirm is False:
+        if not confirm:
             await ctx.send(
                 _(
                     "This will toggle the bank to be {banktype}, deleting all accounts "

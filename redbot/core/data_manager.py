@@ -38,9 +38,8 @@ basic_config_default: Dict[str, Any] = {
 
 config_dir = None
 appdir = appdirs.AppDirs("Red-DiscordBot")
-if sys.platform == "linux":
-    if 0 < os.getuid() < 1000:  # pylint: disable=no-member
-        config_dir = Path(appdir.site_data_dir)
+if sys.platform == "linux" and 0 < os.getuid() < 1000:  # pylint: disable=no-member
+    config_dir = Path(appdir.site_data_dir)
 if not config_dir:
     config_dir = Path(appdir.user_config_dir)
 config_file = config_dir / "config.json"

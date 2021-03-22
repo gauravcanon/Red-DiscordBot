@@ -36,10 +36,10 @@ class RedRpc(JsonRpc):
 
     def remove_method(self, method):
         meth_name = get_name(method)
-        new_methods = {}
-        for name, meth in self.methods.items():
-            if name != meth_name:
-                new_methods[name] = meth
+        new_methods = {
+            name: meth for name, meth in self.methods.items() if name != meth_name
+        }
+
         self.methods = new_methods
 
     def remove_methods(self, prefix: str):

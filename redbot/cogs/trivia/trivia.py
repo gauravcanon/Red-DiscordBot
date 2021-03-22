@@ -362,7 +362,7 @@ class Trivia(commands.Cog):
     @trivia.command(name="list")
     async def trivia_list(self, ctx: commands.Context):
         """List available trivia categories."""
-        lists = set(p.stem for p in self._all_lists())
+        lists = {p.stem for p in self._all_lists()}
         if await ctx.embed_requested():
             await ctx.send(
                 embed=discord.Embed(
@@ -497,10 +497,10 @@ class Trivia(commands.Cog):
             await ctx.send(_("There are no scores on record!"))
             return
         leaderboard = self._get_leaderboard(data, key, top)
-        ret = []
-        for page in pagify(leaderboard, shorten_by=10):
-            ret.append(await ctx.send(box(page, lang="py")))
-        return ret
+        return [
+            await ctx.send(box(page, lang="py"))
+            for page in pagify(leaderboard, shorten_by=10)
+        ]
 
     @staticmethod
     def _get_leaderboard(data: dict, key: str, top: int):

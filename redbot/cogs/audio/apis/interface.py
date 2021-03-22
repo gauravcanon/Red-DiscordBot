@@ -239,7 +239,7 @@ class AudioAPIInterface:
                     "last_fetched": time_now,
                 }
             )
-            if skip_youtube is False:
+            if not skip_youtube:
                 val = None
                 if youtube_cache:
                     try:
@@ -334,13 +334,12 @@ class AudioAPIInterface:
             if notifier:
                 await notifier.notify_user(current=track_count, total=total_tracks, key="spotify")
             try:
-                if results.get("next") is not None:
-                    results = await self.fetch_from_spotify_api(
-                        query_type, uri, results["next"], params, notifier=notifier
-                    )
-                    continue
-                else:
+                if results.get("next") is None:
                     break
+                results = await self.fetch_from_spotify_api(
+                    query_type, uri, results["next"], params, notifier=notifier
+                )
+                continue
             except KeyError:
                 raise SpotifyFetchError(
                     _("This doesn't seem to be a valid Spotify playlist/album URL or code.")
@@ -576,29 +575,36 @@ class AudioAPIInterface:
                         track_object = []
                 else:
                     track_object = []
-                if (track_count % 2 == 0) or (track_count == total_tracks):
+                if (
+                    (track_count % 2 == 0) or (track_count == total_tracks)
+                ) and notifier is not None:
                     key = "lavalink"
                     seconds = "???"
                     second_key = None
-                    if notifier is not None:
-                        await notifier.notify_user(
-                            current=track_count,
-                            total=total_tracks,
-                            key=key,
-                            seconds_key=second_key,
-                            seconds=seconds,
-                        )
+                    await notifier.notify_user(
+                        current=track_count,
+                        total=total_tracks,
+                        key=key,
+                        seconds_key=second_key,
+                        seconds=seconds,
+                    )
 
-                if youtube_api_error or consecutive_fails >= (20 if global_entry else 10):
+                if youtube_api_error:
                     error_embed = discord.Embed(
                         colour=await ctx.embed_colour(),
                         title=_("Failing to get tracks, skipping remaining."),
                     )
                     if notifier is not None:
                         await notifier.update_embed(error_embed)
-                    if youtube_api_error:
-                        lock(ctx, False)
-                        raise SpotifyFetchError(message=youtube_api_error)
+                    lock(ctx, False)
+                    raise SpotifyFetchError(message=youtube_api_error)
+                elif consecutive_fails >= (20 if global_entry else 10):
+                    error_embed = discord.Embed(
+                        colour=await ctx.embed_colour(),
+                        title=_("Failing to get tracks, skipping remaining."),
+                    )
+                    if notifier is not None:
+                        await notifier.update_embed(error_embed)
                     break
                 if not track_object:
                     consecutive_fails += 1
@@ -848,7 +854,7 @@ class AudioAPIInterface:
                     results, called_api = results, False
         if valid_global_entry:
             pass
-        elif lazy is True:
+        elif lazy:
             called_api = False
         elif val and not forced and isinstance(val, dict):
             data = val

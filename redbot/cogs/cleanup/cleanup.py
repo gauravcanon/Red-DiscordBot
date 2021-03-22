@@ -157,10 +157,7 @@ class Cleanup(commands.Cog):
                 return
 
         def check(m):
-            if text in m.content:
-                return True
-            else:
-                return False
+            return text in m.content
 
         to_delete = await self.get_messages_for_deletion(
             channel=channel,
@@ -222,10 +219,7 @@ class Cleanup(commands.Cog):
                 return
 
         def check(m):
-            if m.author.id == _id:
-                return True
-            else:
-                return False
+            return m.author.id == _id
 
         to_delete = await self.get_messages_for_deletion(
             channel=channel,
@@ -481,9 +475,7 @@ class Cleanup(commands.Cog):
         bot_id = self.bot.user.id
 
         def check(m):
-            if m.author.id == bot_id:
-                return True
-            elif m == ctx.message:
+            if m.author.id == bot_id or m == ctx.message:
                 return True
             p = discord.utils.find(m.content.startswith, prefixes)
             if p and len(p) > 0:
