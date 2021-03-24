@@ -978,10 +978,7 @@ class Downloader(commands.Cog):
         """List currently pinned cogs."""
         installed = await self.installed_cogs()
         pinned_list = sorted([cog.name for cog in installed if cog.pinned], key=str.lower)
-        if pinned_list:
-            message = humanize_list(pinned_list)
-        else:
-            message = _("None.")
+        message = humanize_list(pinned_list) if pinned_list else _("None.")
         if await ctx.embed_requested():
             embed = discord.Embed(color=(await ctx.embed_colour()))
             for page in pagify(message, delims=[", "], page_length=900):
@@ -992,10 +989,7 @@ class Downloader(commands.Cog):
             await ctx.send(embed=embed)
         else:
             for page in pagify(message, delims=[", "], page_length=1900):
-                if page.startswith(", "):
-                    page = page[2:]
-                else:
-                    page = _("Pinned Cogs: \n") + page
+                page = page[2:] if page.startswith(", ") else _("Pinned Cogs: \n") + page
                 await ctx.send(box(page))
 
     @cog.command(name="checkforupdates")
@@ -1023,7 +1017,7 @@ class Downloader(commands.Cog):
                 message += _("\nThese shared libraries can be updated: ") + humanize_list(
                     tuple(map(inline, libnames))
                 )
-            if not (cogs_to_update or libs_to_update) and filter_message:
+            if not cogs_to_update and not libs_to_update and filter_message:
                 message += _("No cogs can be updated.")
             message += filter_message
 
@@ -1218,19 +1212,17 @@ class Downloader(commands.Cog):
         installed_str = ""
         if installed:
             installed_str = _("Installed Cogs:\n") + "\n".join(
-                [
-                    "- {}{}".format(i.name, ": {}".format(i.short) if i.short else "")
-                    for i in installed
-                    if i.repo_name == repo.name
-                ]
+                "- {}{}".format(i.name, ": {}".format(i.short) if i.short else "")
+                for i in installed
+                if i.repo_name == repo.name
             )
+
         cogs = _("Available Cogs:\n") + "\n".join(
-            [
-                "+ {}: {}".format(cog.name, cog.short or "")
-                for cog in repo.available_cogs
-                if not (cog.hidden or cog in installed)
-            ]
+            "+ {}: {}".format(cog.name, cog.short or "")
+            for cog in repo.available_cogs
+            if not (cog.hidden or cog in installed)
         )
+
         cogs = cogs + "\n\n" + installed_str
         for page in pagify(cogs, ["\n"], shorten_by=16):
             await ctx.send(box(page.lstrip(" "), lang="diff"))
@@ -1361,11 +1353,16 @@ class Downloader(commands.Cog):
         for cog in cogs:
             if cog.min_python_version > sys.version_info:
                 outdated_python_version.append(
-                    inline(cog.name)
-                    + _(" (Minimum: {min_version})").format(
-                        min_version=".".join([str(n) for n in cog.min_python_version])
+                    (
+                        inline(cog.name)
+                        + _(" (Minimum: {min_version})").format(
+                            min_version=".".join(
+                                str(n) for n in cog.min_python_version
+                            )
+                        )
                     )
                 )
+
                 continue
             ignore_max = cog.min_bot_version > cog.max_bot_version
             if (

@@ -334,10 +334,7 @@ class CogManagerUI(commands.Cog):
             install_path=install_path, core_path=core_path
         )
 
-        partial = []
-        for i, p in enumerate(cog_paths, start=1):
-            partial.append("{}. {}".format(i, p))
-
+        partial = ["{}. {}".format(i, p) for i, p in enumerate(cog_paths, start=1)]
         msg += "\n".join(partial)
         await ctx.send(box(msg))
 

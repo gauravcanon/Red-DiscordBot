@@ -117,9 +117,7 @@ async def global_unique_user_finder(
         maybe_matches.append(user)
 
     if guild is not None:
-        async for member in AsyncIter(guild.members).filter(
-            lambda m: m.nick == arg and not any(obj.id == m.id for obj in maybe_matches)
-        ):
+        async for member in AsyncIter(guild.members).filter(lambda m: m.nick == arg and all(obj.id != m.id for obj in maybe_matches)):
             maybe_matches.append(member)
 
     if not maybe_matches:
@@ -237,7 +235,7 @@ class ScopeParser(commands.Converter):
             if scope not in valid_scopes:
                 raise commands.ArgParserFailure("--scope", scope_raw, custom_help=_(_SCOPE_HELP))
             target_scope = standardize_scope(scope)
-        elif "--scope" in argument and not vals["scope"]:
+        elif "--scope" in argument:
             raise commands.ArgParserFailure("--scope", _("Nothing"), custom_help=_(_SCOPE_HELP))
 
         is_owner = await ctx.bot.is_owner(ctx.author)
@@ -364,7 +362,7 @@ class ComplexScopeParser(commands.Converter):
                     "--to-scope", to_scope_raw, custom_help=_SCOPE_HELP
                 )
             target_scope = standardize_scope(to_scope)
-        elif "--to-scope" in argument and not vals["to_scope"]:
+        elif "--to-scope" in argument:
             raise commands.ArgParserFailure("--to-scope", _("Nothing"), custom_help=_(_SCOPE_HELP))
 
         if vals["from_scope"]:

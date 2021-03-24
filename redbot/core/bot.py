@@ -385,8 +385,8 @@ class RedBase(
 
     async def _red_before_invoke_method(self, ctx):
         await self.wait_until_red_ready()
-        return_exceptions = isinstance(ctx.command, commands.commands._RuleDropper)
         if self._red_before_invoke_objs:
+            return_exceptions = isinstance(ctx.command, commands.commands._RuleDropper)
             await asyncio.gather(
                 *(coro(ctx) for coro in self._red_before_invoke_objs),
                 return_exceptions=return_exceptions,
@@ -656,10 +656,7 @@ class RedBase(
             if not (await self.ignored_channel_or_guild(message)):
                 return False
 
-        if not (await self.allowed_by_whitelist_blacklist(message.author)):
-            return False
-
-        return True
+        return bool(await self.allowed_by_whitelist_blacklist(message.author))
 
     async def ignored_channel_or_guild(
         self, ctx: Union[commands.Context, discord.Message]
@@ -994,8 +991,8 @@ class RedBase(
                     to_remove.append(package)
             for package in to_remove:
                 packages.remove(package)
-            if packages:
-                log.info("Loaded packages: " + ", ".join(packages))
+        if packages:
+            log.info("Loaded packages: " + ", ".join(packages))
 
         if self.rpc_enabled:
             await self.rpc.initialize(self.rpc_port)
@@ -1662,11 +1659,7 @@ class RedBase(
             launcher sees this, it will attempt to restart the bot.
 
         """
-        if not restart:
-            self._shutdown_mode = ExitCodes.SHUTDOWN
-        else:
-            self._shutdown_mode = ExitCodes.RESTART
-
+        self._shutdown_mode = ExitCodes.SHUTDOWN if not restart else ExitCodes.RESTART
         await self.logout()
         sys.exit(self._shutdown_mode)
 

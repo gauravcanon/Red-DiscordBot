@@ -195,9 +195,7 @@ class Alias(commands.Cog):
         message = "\n".join(names)
         temp = list(pagify(message, delims=["\n"], page_length=1850))
         alias_list = []
-        count = 0
-        for page in temp:
-            count += 1
+        for count, page in enumerate(temp, start=1):
             page = page.lstrip("\n")
             page = (
                 _("Aliases:\n")
@@ -416,9 +414,10 @@ class Alias(commands.Cog):
 
         await self._ready_event.wait()
 
-        if message.guild is not None:
-            if await self.bot.cog_disabled_in_guild(self, message.guild):
-                return
+        if message.guild is not None and await self.bot.cog_disabled_in_guild(
+            self, message.guild
+        ):
+            return
 
         try:
             prefix = await self.get_prefix(message)

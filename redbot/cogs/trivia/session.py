@@ -259,7 +259,7 @@ class TriviaSession:
                 if " " in answer and answer in guess:
                     # Exact matching, issue #331
                     return True
-                elif any(word == answer for word in guess.split(" ")):
+                elif answer in guess.split(" "):
                     return True
             return False
 

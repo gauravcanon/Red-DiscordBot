@@ -710,13 +710,12 @@ class Config(metaclass=ConfigMeta):
         if hasattr(driver, "migrate_identifier"):
             driver.migrate_identifier(identifier)
 
-        conf = cls(
+        return cls(
             cog_name=cog_name,
             unique_identifier=uuid,
             force_registration=force_registration,
             driver=driver,
         )
-        return conf
 
     @classmethod
     def get_core_conf(cls, force_registration: bool = False, allow_old: bool = False):
@@ -790,9 +789,9 @@ class Config(metaclass=ConfigMeta):
         registered under the same name.
         """
         for k, v in to_add.items():
-            val_is_dict = isinstance(v, dict)
             if k in _partial:
                 existing_is_dict = isinstance(_partial[k], dict)
+                val_is_dict = isinstance(v, dict)
                 if val_is_dict != existing_is_dict:
                     # != is XOR
                     raise KeyError("You cannot register a Group and a Value under the same name.")
@@ -1441,16 +1440,15 @@ class Config(metaclass=ConfigMeta):
         """
         if guild is None:
             return self.get_custom_lock(self.GUILD)
-        else:
-            id_data = IdentifierData(
-                self.cog_name,
-                self.unique_identifier,
-                category=self.MEMBER,
-                primary_key=(str(guild.id),),
-                identifiers=(),
-                primary_key_len=2,
-            )
-            return self._lock_cache.setdefault(id_data, asyncio.Lock())
+        id_data = IdentifierData(
+            self.cog_name,
+            self.unique_identifier,
+            category=self.MEMBER,
+            primary_key=(str(guild.id),),
+            identifiers=(),
+            primary_key_len=2,
+        )
+        return self._lock_cache.setdefault(id_data, asyncio.Lock())
 
     def get_custom_lock(self, group_identifier: str) -> asyncio.Lock:
         """Get a lock for all data in a custom scope.

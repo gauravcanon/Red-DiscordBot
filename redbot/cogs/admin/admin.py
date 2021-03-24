@@ -382,7 +382,7 @@ class Admin(commands.Cog):
         guild_roles = guild.roles
 
         valid_roles = tuple(r for r in guild_roles if r.id in selfrole_ids)
-        valid_role_ids = set(r.id for r in valid_roles)
+        valid_role_ids = {r.id for r in valid_roles}
 
         if selfrole_ids != valid_role_ids:
             await self.config.guild(guild).selfroles.set(list(valid_role_ids))
@@ -432,7 +432,7 @@ class Admin(commands.Cog):
         Lists all available selfroles.
         """
         selfroles = await self._valid_selfroles(ctx.guild)
-        fmt_selfroles = "\n".join(["+ " + r.name for r in selfroles])
+        fmt_selfroles = "\n".join("+ " + r.name for r in selfroles)
 
         if not fmt_selfroles:
             await ctx.send("There are currently no selfroles.")

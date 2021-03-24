@@ -47,7 +47,7 @@ class LocalTrackCommands(MixinMeta, metaclass=CompositeMetaClass):
             query = Query.process_input(
                 _dir, self.local_folder_current_path, search_subfolders=True
             )
-            await self._local_play_all(ctx, query, from_search=False if not folder else True)
+            await self._local_play_all(ctx, query, from_search=bool(folder))
 
     @command_local.command(name="play")
     async def command_local_play(self, ctx: commands.Context):

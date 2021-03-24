@@ -129,11 +129,7 @@ class LavalinkEvents(MixinMeta, metaclass=CompositeMetaClass):
 
                 if not description:
                     return
-                if current_stream:
-                    dur = "LIVE"
-                else:
-                    dur = self.format_time(current_length)
-
+                dur = "LIVE" if current_stream else self.format_time(current_length)
                 thumb = None
                 if await self.config.guild(guild).thumbnail() and current_thumbnail:
                     thumb = current_thumbnail

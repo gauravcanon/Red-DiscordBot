@@ -31,9 +31,7 @@ class FormattingUtilities(MixinMeta, metaclass=CompositeMetaClass):
         self, ctx: commands.Context, options: List, emoji: str, page: int, playlist: bool = False
     ) -> str:
         try:
-            if emoji == "\N{DIGIT ONE}\N{COMBINING ENCLOSING KEYCAP}":
-                search_choice = options[0 + (page * 5)]
-            elif emoji == "\N{DIGIT TWO}\N{COMBINING ENCLOSING KEYCAP}":
+            if emoji == "\N{DIGIT TWO}\N{COMBINING ENCLOSING KEYCAP}":
                 search_choice = options[1 + (page * 5)]
             elif emoji == "\N{DIGIT THREE}\N{COMBINING ENCLOSING KEYCAP}":
                 search_choice = options[2 + (page * 5)]
@@ -118,9 +116,7 @@ class FormattingUtilities(MixinMeta, metaclass=CompositeMetaClass):
         if not await self.maybe_charge_requester(ctx, guild_data["jukebox_price"]):
             return
         try:
-            if emoji == "\N{DIGIT ONE}\N{COMBINING ENCLOSING KEYCAP}":
-                search_choice = tracks[0 + (page * 5)]
-            elif emoji == "\N{DIGIT TWO}\N{COMBINING ENCLOSING KEYCAP}":
+            if emoji == "\N{DIGIT TWO}\N{COMBINING ENCLOSING KEYCAP}":
                 search_choice = tracks[1 + (page * 5)]
             elif emoji == "\N{DIGIT THREE}\N{COMBINING ENCLOSING KEYCAP}":
                 search_choice = tracks[2 + (page * 5)]
@@ -138,16 +134,10 @@ class FormattingUtilities(MixinMeta, metaclass=CompositeMetaClass):
             )
         else:
             search_choice = Query.process_input(search_choice, self.local_folder_current_path)
-            if search_choice.is_local:
-                if (
-                    search_choice.local_track_path.exists()
-                    and search_choice.local_track_path.is_dir()
-                ):
+            if search_choice.is_local and search_choice.local_track_path.exists():
+                if search_choice.local_track_path.is_dir():
                     return await ctx.invoke(self.command_search, query=search_choice)
-                elif (
-                    search_choice.local_track_path.exists()
-                    and search_choice.local_track_path.is_file()
-                ):
+                elif search_choice.local_track_path.is_file():
                     search_choice.invoked_from = "localtrack"
             return await ctx.invoke(self.command_play, query=search_choice)
 
@@ -170,21 +160,22 @@ class FormattingUtilities(MixinMeta, metaclass=CompositeMetaClass):
             )
         elif guild_data["maxlength"] > 0:
 
-            if self.is_track_length_allowed(search_choice, guild_data["maxlength"]):
-                search_choice.extras.update(
-                    {
-                        "enqueue_time": int(time.time()),
-                        "vc": player.channel.id,
-                        "requester": ctx.author.id,
-                    }
-                )
-                player.add(ctx.author, search_choice)
-                player.maybe_shuffle()
-                self.bot.dispatch(
-                    "red_audio_track_enqueue", player.channel.guild, search_choice, ctx.author
-                )
-            else:
+            if not self.is_track_length_allowed(
+                search_choice, guild_data["maxlength"]
+            ):
                 return await self.send_embed_msg(ctx, title=_("Track exceeds maximum length."))
+            search_choice.extras.update(
+                {
+                    "enqueue_time": int(time.time()),
+                    "vc": player.channel.id,
+                    "requester": ctx.author.id,
+                }
+            )
+            player.add(ctx.author, search_choice)
+            player.maybe_shuffle()
+            self.bot.dispatch(
+                "red_audio_track_enqueue", player.channel.guild, search_choice, ctx.author
+            )
         else:
             search_choice.extras.update(
                 {
@@ -322,10 +313,7 @@ class FormattingUtilities(MixinMeta, metaclass=CompositeMetaClass):
             else:
                 if track.is_stream:
                     icy = await self.icyparser(track.uri)
-                    if icy:
-                        title = icy
-                    else:
-                        title = f"{track.title} - {track.author}"
+                    title = icy or f"{track.title} - {track.author}"
                 elif track.author.lower() not in track.title.lower():
                     title = f"{track.title} - {track.author}"
                 else:
@@ -363,10 +351,7 @@ class FormattingUtilities(MixinMeta, metaclass=CompositeMetaClass):
             else:
                 if track.is_stream:
                     icy = await self.icyparser(track.uri)
-                    if icy:
-                        title = icy
-                    else:
-                        title = f"{track.title} - {track.author}"
+                    title = icy or f"{track.title} - {track.author}"
                 elif track.author.lower() not in track.title.lower():
                     title = f"{track.title} - {track.author}"
                 else:
@@ -399,13 +384,12 @@ class FormattingUtilities(MixinMeta, metaclass=CompositeMetaClass):
         loc_time = round((pos / dur if dur != 0 else pos) * sections)
         bar = "\N{BOX DRAWINGS HEAVY HORIZONTAL}"
         seek = "\N{RADIO BUTTON}"
-        if paused:
-            msg = "\N{DOUBLE VERTICAL BAR}\N{VARIATION SELECTOR-16}"
-        else:
-            msg = "\N{BLACK RIGHT-POINTING TRIANGLE}\N{VARIATION SELECTOR-16}"
+        msg = (
+            "\N{DOUBLE VERTICAL BAR}\N{VARIATION SELECTOR-16}"
+            if paused
+            else "\N{BLACK RIGHT-POINTING TRIANGLE}\N{VARIATION SELECTOR-16}"
+        )
+
         for i in range(sections):
-            if i == loc_time:
-                msg += seek
-            else:
-                msg += bar
+            msg += seek if i == loc_time else bar
         return msg

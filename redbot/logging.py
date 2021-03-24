@@ -265,11 +265,7 @@ class RedRichHandler(RichHandler):
             message = record.getMessage()
 
         use_markup = getattr(record, "markup") if hasattr(record, "markup") else self.markup
-        if use_markup:
-            message_text = Text.from_markup(message)
-        else:
-            message_text = Text(message)
-
+        message_text = Text.from_markup(message) if use_markup else Text(message)
         if self.highlighter:
             message_text = self.highlighter(message_text)
         if self.KEYWORDS:
@@ -332,7 +328,7 @@ def init_logging(level: int, location: pathlib.Path, cli_flags: argparse.Namespa
     file_formatter = logging.Formatter(
         "[{asctime}] [{levelname}] {name}: {message}", datefmt="%Y-%m-%d %H:%M:%S", style="{"
     )
-    if enable_rich_logging is True:
+    if enable_rich_logging:
         rich_formatter = logging.Formatter("{message}", datefmt="[%X]", style="{")
 
         stdout_handler = RedRichHandler(

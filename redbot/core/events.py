@@ -67,7 +67,7 @@ def init_events(bot, cli_flags):
         bot._uptime = datetime.utcnow()
 
         guilds = len(bot.guilds)
-        users = len(set([m for m in bot.get_all_members()]))
+        users = len(set(bot.get_all_members()))
 
         app_info = await bot.application_info()
 
@@ -137,11 +137,7 @@ def init_events(bot, cli_flags):
                         else:
                             installed_extras.append(extra)
 
-                    if installed_extras:
-                        package_extras = f"[{','.join(installed_extras)}]"
-                    else:
-                        package_extras = ""
-
+                    package_extras = f"[{','.join(installed_extras)}]" if installed_extras else ""
                     extra_update += _(
                         "\n\nTo update your bot, first shutdown your "
                         "bot then open a window of {console} (Not as admin) and "

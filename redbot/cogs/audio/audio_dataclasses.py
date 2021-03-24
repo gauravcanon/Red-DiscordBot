@@ -125,10 +125,7 @@ class LocalPath:
             self.path = self.localtrack_folder.joinpath(path) if path else self.localtrack_folder
 
         try:
-            if self.path.is_file():
-                parent = self.path.parent
-            else:
-                parent = self.path
+            parent = self.path.parent if self.path.is_file() else self.path
             self.parent = Path(parent)
         except OSError:
             self.parent = None
@@ -482,7 +479,7 @@ class Query:
                 if track.startswith("sc "):
                     returning["invoked_from"] = "sc search"
                     returning["soundcloud"] = True
-                elif track.startswith("list "):
+                else:
                     returning["invoked_from"] = "search list"
                 track = _RE_REMOVE_START.sub("", track, 1)
                 returning["queryforced"] = track
@@ -563,13 +560,10 @@ class Query:
                                 returning["start_time"] = (int(match.group(1)) * 60) + int(
                                     match.group(2)
                                 )
-                        if "/sets/" in track:
-                            if "?in=" in track:
-                                returning["single"] = True
-                            else:
-                                returning["playlist"] = True
-                        else:
+                        if "?in=" in track or "/sets/" not in track:
                             returning["single"] = True
+                        else:
+                            returning["playlist"] = True
                     elif url_domain == "bandcamp.com":
                         returning["bandcamp"] = True
                         if "/album/" in track:
@@ -591,7 +585,7 @@ class Query:
                                     + int(match.group(3))
                                 )
 
-                        if not any(x in track for x in ["/clip/", "/videos/"]):
+                        if all(x not in track for x in ["/clip/", "/videos/"]):
                             returning["stream"] = True
                     else:
                         returning["other"] = True

@@ -87,9 +87,7 @@ class Streams(commands.Cog):
 
     def check_name_or_id(self, data: str) -> bool:
         matched = self.yt_cid_pattern.fullmatch(data)
-        if matched is None:
-            return True
-        return False
+        return matched is None
 
     async def initialize(self) -> None:
         """Should be called straight after cog instantiation."""
@@ -199,9 +197,12 @@ class Streams(commands.Cog):
         self.ttv_bearer_cache["expires_at"] = datetime.now().timestamp() + data.get("expires_in")
 
     async def maybe_renew_twitch_bearer_token(self) -> None:
-        if self.ttv_bearer_cache:
-            if self.ttv_bearer_cache["expires_at"] - datetime.now().timestamp() <= 60:
-                await self.get_twitch_bearer_token()
+        if (
+            self.ttv_bearer_cache
+            and self.ttv_bearer_cache["expires_at"] - datetime.now().timestamp()
+            <= 60
+        ):
+            await self.get_twitch_bearer_token()
 
     @commands.command()
     async def twitchstream(self, ctx: commands.Context, channel_name: str):
@@ -344,11 +345,13 @@ class Streams(commands.Cog):
 
         for stream in streams:
             for channel_id in stream.channels:
-                if channel_id == ctx.channel.id:
+                if (
+                    _all
+                    and ctx.channel.id in local_channel_ids
+                    and channel_id in stream.channels
+                    or channel_id == ctx.channel.id
+                ):
                     stream.channels.remove(channel_id)
-                elif _all and ctx.channel.id in local_channel_ids:
-                    if channel_id in stream.channels:
-                        stream.channels.remove(channel_id)
 
             if not stream.channels:
                 to_remove.append(stream)
@@ -851,9 +854,12 @@ class Streams(commands.Cog):
         for stream in streams:
             tw_id = str(stream["channel"]["_id"])
             for alert in self.streams:
-                if isinstance(alert, TwitchStream) and alert.id == tw_id:
-                    if channel.id in alert.channels:
-                        break
+                if (
+                    isinstance(alert, TwitchStream)
+                    and alert.id == tw_id
+                    and channel.id in alert.channels
+                ):
+                    break
             else:
                 filtered.append(stream)
         return filtered
@@ -889,10 +895,7 @@ class Streams(commands.Cog):
         return streams
 
     async def save_streams(self):
-        raw_streams = []
-        for stream in self.streams:
-            raw_streams.append(stream.export())
-
+        raw_streams = [stream.export() for stream in self.streams]
         await self.config.streams.set(raw_streams)
 
     def cog_unload(self):

@@ -38,11 +38,7 @@ class MuteTime(Converter):
     ) -> Dict[str, Union[timedelta, str, None]]:
         time_split = TIME_SPLIT.split(argument)
         result: Dict[str, Union[timedelta, str, None]] = {}
-        if time_split:
-            maybe_time = time_split[-1]
-        else:
-            maybe_time = argument
-
+        maybe_time = time_split[-1] if time_split else argument
         time_data = {}
         for time in TIME_RE.finditer(maybe_time):
             argument = argument.replace(time[0], "")

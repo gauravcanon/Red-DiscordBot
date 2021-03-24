@@ -64,10 +64,7 @@ class _RepoCheckoutCtxManager(
     ):
         self.repo = repo
         self.rev = rev
-        if exit_to_rev is None:
-            self.exit_to_rev = self.repo.commit
-        else:
-            self.exit_to_rev = exit_to_rev
+        self.exit_to_rev = self.repo.commit if exit_to_rev is None else exit_to_rev
         self.force_checkout = force_checkout
         self.coro = repo._checkout(self.rev, force_checkout=self.force_checkout)
 
@@ -479,9 +476,13 @@ class Repo(RepoJSONMixin):
             ambiguous_error = f"error: short SHA1 {rev} is ambiguous\nhint: The candidates are:\n"
             if not stderr.startswith(ambiguous_error):
                 raise errors.UnknownRevision(f"Revision {rev} cannot be found.", git_command)
-            candidates = []
-            for match in self.AMBIGUOUS_ERROR_REGEX.finditer(stderr, len(ambiguous_error)):
-                candidates.append(Candidate(match["rev"], match["type"], match["desc"]))
+            candidates = [
+                Candidate(match["rev"], match["type"], match["desc"])
+                for match in self.AMBIGUOUS_ERROR_REGEX.finditer(
+                    stderr, len(ambiguous_error)
+                )
+            ]
+
             if candidates:
                 raise errors.AmbiguousRevision(
                     f"Short SHA1 {rev} is ambiguous.", git_command, candidates
@@ -884,7 +885,7 @@ class Repo(RepoJSONMixin):
         """
 
         if libraries:
-            if not all([i in self.available_libraries for i in libraries]):
+            if any(i not in self.available_libraries for i in libraries):
                 raise ValueError("Some given libraries are not available in this repo.")
         else:
             libraries = self.available_libraries
@@ -974,7 +975,9 @@ class Repo(RepoJSONMixin):
         """
         # noinspection PyTypeChecker
         return tuple(
-            [m for m in self.available_modules if m.type == InstallableType.COG and not m.disabled]
+            m
+            for m in self.available_modules
+            if m.type == InstallableType.COG and not m.disabled
         )
 
     @property
@@ -984,7 +987,9 @@ class Repo(RepoJSONMixin):
         """
         # noinspection PyTypeChecker
         return tuple(
-            [m for m in self.available_modules if m.type == InstallableType.SHARED_LIBRARY]
+            m
+            for m in self.available_modules
+            if m.type == InstallableType.SHARED_LIBRARY
         )
 
     @classmethod

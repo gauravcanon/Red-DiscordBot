@@ -21,9 +21,8 @@ conversion_log = logging.getLogger("red.converter")
 
 config_dir = None
 appdir = appdirs.AppDirs("Red-DiscordBot")
-if sys.platform == "linux":
-    if 0 < os.getuid() < 1000:  # pylint: disable=no-member  # Non-exist on win
-        config_dir = Path(appdir.site_data_dir)
+if sys.platform == "linux" and 0 < os.getuid() < 1000:  # pylint: disable=no-member  # Non-exist on win
+    config_dir = Path(appdir.site_data_dir)
 if not config_dir:
     config_dir = Path(appdir.user_config_dir)
 try:
@@ -43,10 +42,7 @@ def load_existing_config():
 
 
 instance_data = load_existing_config()
-if instance_data is None:
-    instance_list = []
-else:
-    instance_list = list(instance_data.keys())
+instance_list = [] if instance_data is None else list(instance_data.keys())
 
 
 def save_config(name, data, remove=False):
@@ -245,12 +241,12 @@ async def remove_instance(
 ):
     data_manager.load_basic_configuration(instance)
 
-    if interactive is True and delete_data is None:
+    if interactive and delete_data is None:
         delete_data = click.confirm(
             "Would you like to delete this instance's data?", default=False
         )
 
-    if interactive is True and _create_backup is None:
+    if interactive and _create_backup is None:
         _create_backup = click.confirm(
             "Would you like to make a backup of the data for this instance?", default=False
         )
@@ -265,7 +261,7 @@ async def remove_instance(
         if delete_data is True:
             await driver_cls.delete_all_data(interactive=interactive, drop_db=drop_db)
 
-        if interactive is True and remove_datapath is None:
+        if interactive and remove_datapath is None:
             remove_datapath = click.confirm(
                 "Would you like to delete the instance's entire datapath?", default=False
             )

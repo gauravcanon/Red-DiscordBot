@@ -388,11 +388,14 @@ async def run_bot(red: Red, cli_flags: Namespace) -> None:
     except discord.LoginFailure:
         log.critical("This token doesn't seem to be valid.")
         db_token = await red._config.token()
-        if db_token and not cli_flags.no_prompt:
-            if confirm("\nDo you want to reset the token?"):
-                await red._config.token.set("")
-                print("Token has been reset.")
-                sys.exit(0)
+        if (
+            db_token
+            and not cli_flags.no_prompt
+            and confirm("\nDo you want to reset the token?")
+        ):
+            await red._config.token.set("")
+            print("Token has been reset.")
+            sys.exit(0)
         sys.exit(1)
     except discord.PrivilegedIntentsRequired:
         print(

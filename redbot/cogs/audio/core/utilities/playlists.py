@@ -66,7 +66,7 @@ class PlaylistUtilities(MixinMeta, metaclass=CompositeMetaClass):
             ):
                 has_perms = True
 
-        if has_perms is False:
+        if not has_perms:
             if hasattr(playlist, "name"):
                 msg = _(
                     "You do not have the permissions to manage {name} (`{id}`) [**{scope}**]."
@@ -207,13 +207,12 @@ class PlaylistUtilities(MixinMeta, metaclass=CompositeMetaClass):
             if original_input.isnumeric():
                 arg = int(original_input)
                 correct_scope_matches = [p for p in correct_scope_matches if p.id == arg]
-            if match_count > 10:
-                raise TooManyMatches(
-                    _(
-                        "{match_count} playlists match {original_input}: "
-                        "Please try to be more specific, or use the playlist ID."
-                    ).format(match_count=match_count, original_input=original_input)
-                )
+            raise TooManyMatches(
+                _(
+                    "{match_count} playlists match {original_input}: "
+                    "Please try to be more specific, or use the playlist ID."
+                ).format(match_count=match_count, original_input=original_input)
+            )
         elif match_count == 1:
             return correct_scope_matches[0], original_input, correct_scope_matches[0].scope
         elif match_count == 0:
@@ -640,7 +639,7 @@ class PlaylistUtilities(MixinMeta, metaclass=CompositeMetaClass):
 
             tracks = result.tracks
 
-        if not search and len(tracklist) == 0:
+        if not search and not tracklist:
             async for track in AsyncIter(tracks):
                 track_obj = self.get_track_json(player, other_track=track)
                 tracklist.append(track_obj)

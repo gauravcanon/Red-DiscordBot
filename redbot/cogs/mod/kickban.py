@@ -169,16 +169,15 @@ class KickBanMixin(MixinMeta):
 
             ban_list = [ban.user.id for ban in await guild.bans()]
             if user.id in ban_list:
-                if user.id in tempbans:
-                    async with self.config.guild(guild).current_tempbans() as tempbans:
-                        tempbans.remove(user.id)
-                    removed_temp = True
-                else:
+                if user.id not in tempbans:
                     return (
                         False,
                         _("User with ID {user_id} is already banned.").format(user_id=user.id),
                     )
 
+                async with self.config.guild(guild).current_tempbans() as tempbans:
+                    tempbans.remove(user.id)
+                removed_temp = True
             ban_type = "hackban"
 
         audit_reason = get_audit_reason(author, reason, shorten=True)
@@ -792,8 +791,8 @@ class KickBanMixin(MixinMeta):
             is False
         ):
             return
-        needs_unmute = True if user_voice_state.mute else False
-        needs_undeafen = True if user_voice_state.deaf else False
+        needs_unmute = bool(user_voice_state.mute)
+        needs_undeafen = bool(user_voice_state.deaf)
         audit_reason = get_audit_reason(ctx.author, reason, shorten=True)
         if needs_unmute and needs_undeafen:
             await user.edit(mute=False, deafen=False, reason=audit_reason)
@@ -833,8 +832,8 @@ class KickBanMixin(MixinMeta):
             is False
         ):
             return
-        needs_mute = True if user_voice_state.mute is False else False
-        needs_deafen = True if user_voice_state.deaf is False else False
+        needs_mute = user_voice_state.mute is False
+        needs_deafen = user_voice_state.deaf is False
         audit_reason = get_audit_reason(ctx.author, reason, shorten=True)
         author = ctx.author
         guild = ctx.guild

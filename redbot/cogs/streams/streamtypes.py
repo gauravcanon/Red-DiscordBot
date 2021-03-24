@@ -40,7 +40,11 @@ log = logging.getLogger("red.core.cogs.Streams")
 
 def rnd(url):
     """Appends a random parameter to the url to avoid Discord's caching"""
-    return url + "?rnd=" + "".join([choice(ascii_letters) for _loop_counter in range(6)])
+    return (
+        url
+        + "?rnd="
+        + "".join(choice(ascii_letters) for _loop_counter in range(6))
+    )
 
 
 def get_video_ids_from_feed(feed):
@@ -69,10 +73,7 @@ class Stream:
         raise NotImplementedError()
 
     def export(self):
-        data = {}
-        for k, v in self.__dict__.items():
-            if not k.startswith("_"):
-                data[k] = v
+        data = {k: v for k, v in self.__dict__.items() if not k.startswith("_")}
         data["messages"] = []
         for m in self._messages_cache:
             data["messages"].append({"channel": m.channel.id, "message": m.id})
@@ -475,10 +476,6 @@ class PicartoStream(Stream):
         if not data["tags"]:
             data["tags"] = _("None")
 
-        if data["adult"]:
-            data["adult"] = _("NSFW | ")
-        else:
-            data["adult"] = ""
-
+        data["adult"] = _("NSFW | ") if data["adult"] else ""
         embed.set_footer(text=_("{adult}Category: {category} | Tags: {tags}").format(**data))
         return embed

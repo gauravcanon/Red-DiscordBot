@@ -98,10 +98,13 @@ class AudioSetCommands(MixinMeta, metaclass=CompositeMetaClass):
             else:
                 pages.append(box(text, lang="ini"))
         embed_colour = await ctx.embed_colour()
-        pages = list(
-            discord.Embed(title=_("Global Whitelist"), description=page, colour=embed_colour)
+        pages = [
+            discord.Embed(
+                title=_("Global Whitelist"), description=page, colour=embed_colour
+            )
             for page in pages
-        )
+        ]
+
         await menu(ctx, pages, DEFAULT_CONTROLS)
 
     @command_audioset_perms_global_whitelist.command(name="clear")
@@ -192,10 +195,13 @@ class AudioSetCommands(MixinMeta, metaclass=CompositeMetaClass):
             else:
                 pages.append(box(text, lang="ini"))
         embed_colour = await ctx.embed_colour()
-        pages = list(
-            discord.Embed(title=_("Global Blacklist"), description=page, colour=embed_colour)
+        pages = [
+            discord.Embed(
+                title=_("Global Blacklist"), description=page, colour=embed_colour
+            )
             for page in pages
-        )
+        ]
+
         await menu(ctx, pages, DEFAULT_CONTROLS)
 
     @command_audioset_perms_global_blacklist.command(name="clear")
@@ -288,10 +294,13 @@ class AudioSetCommands(MixinMeta, metaclass=CompositeMetaClass):
             else:
                 pages.append(box(text, lang="ini"))
         embed_colour = await ctx.embed_colour()
-        pages = list(
-            discord.Embed(title=_("Whitelist"), description=page, colour=embed_colour)
+        pages = [
+            discord.Embed(
+                title=_("Whitelist"), description=page, colour=embed_colour
+            )
             for page in pages
-        )
+        ]
+
         await menu(ctx, pages, DEFAULT_CONTROLS)
 
     @command_audioset_perms_whitelist.command(name="clear")
@@ -381,10 +390,13 @@ class AudioSetCommands(MixinMeta, metaclass=CompositeMetaClass):
             else:
                 pages.append(box(text, lang="ini"))
         embed_colour = await ctx.embed_colour()
-        pages = list(
-            discord.Embed(title=_("Blacklist"), description=page, colour=embed_colour)
+        pages = [
+            discord.Embed(
+                title=_("Blacklist"), description=page, colour=embed_colour
+            )
             for page in pages
-        )
+        ]
+
         await menu(ctx, pages, DEFAULT_CONTROLS)
 
     @command_audioset_perms_blacklist.command(name="clear")

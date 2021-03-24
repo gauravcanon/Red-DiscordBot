@@ -294,7 +294,7 @@ class Economy(commands.Cog):
 
         - `<confirmation>` This will default to false unless specified.
         """
-        if confirmation is False:
+        if not confirmation:
             await ctx.send(
                 _(
                     "This will delete all bank accounts for {scope}.\nIf you're sure, type "
@@ -339,7 +339,7 @@ class Economy(commands.Cog):
         if global_bank is True:
             return await ctx.send(_("This command cannot be used with a global bank."))
 
-        if confirmation is False:
+        if not confirmation:
             await ctx.send(
                 _(
                     "This will delete all bank accounts for users no longer in this server."
@@ -372,7 +372,7 @@ class Economy(commands.Cog):
         if global_bank is False:
             return await ctx.send(_("This command cannot be used with a local bank."))
 
-        if confirmation is False:
+        if not confirmation:
             await ctx.send(
                 _(
                     "This will delete all bank accounts for users "
@@ -414,7 +414,7 @@ class Economy(commands.Cog):
             name = member_or_id
             uid = member_or_id
 
-        if confirmation is False:
+        if not confirmation:
             await ctx.send(
                 _(
                     "This will delete {name}'s bank account."
@@ -581,9 +581,8 @@ class Economy(commands.Cog):
         try:
             bal_len = len(humanize_number(bank_sorted[0][1]["balance"]))
             bal_len_max = len(humanize_number(max_bal))
-            if bal_len > bal_len_max:
-                bal_len = bal_len_max
-            # first user is the largest we'll see
+            bal_len = min(bal_len, bal_len_max)
+                # first user is the largest we'll see
         except IndexError:
             return await ctx.send(_("There are no accounts in the bank."))
         pound_len = len(str(len(bank_sorted)))
@@ -719,7 +718,7 @@ class Economy(commands.Cog):
     async def slot_machine(author, channel, bid):
         default_reel = deque(cast(Iterable, SMReel))
         reels = []
-        for i in range(3):
+        for _ in range(3):
             default_reel.rotate(random.randint(-999, 999))  # weeeeee
             new_reel = deque(default_reel, maxlen=3)  # we need only 3 symbols
             reels.append(new_reel)  # for each reel
@@ -807,10 +806,7 @@ class Economy(commands.Cog):
         Shows the current economy settings
         """
         guild = ctx.guild
-        if await bank.is_global():
-            conf = self.config
-        else:
-            conf = self.config.guild(guild)
+        conf = self.config if await bank.is_global() else self.config.guild(guild)
         await ctx.send(
             box(
                 _(

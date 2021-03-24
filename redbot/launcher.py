@@ -73,7 +73,7 @@ def run_red(selected_instance, autorestart: bool = False, cliflags=None):
         if cliflags:
             cmd_list += cliflags
         status = subprocess.call(cmd_list)
-        if (not autorestart) or (autorestart and status != 26):
+        if not autorestart or status != 26:
             break
 
 

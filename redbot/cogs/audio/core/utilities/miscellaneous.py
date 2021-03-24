@@ -81,7 +81,7 @@ class MiscellaneousUtilities(MixinMeta, metaclass=CompositeMetaClass):
                 embed = embed.to_dict()
         else:
             embed = {}
-        colour = embed.get("color") if embed.get("color") else colour
+        colour = embed.get("color") or colour
         contents.update(embed)
         if timestamp and isinstance(timestamp, datetime.datetime):
             contents["timestamp"] = timestamp
@@ -94,10 +94,11 @@ class MiscellaneousUtilities(MixinMeta, metaclass=CompositeMetaClass):
         if author:
             name = author.get("name")
             url = author.get("url")
-            if name and url:
-                embed.set_author(name=name, icon_url=url)
-            elif name:
-                embed.set_author(name=name)
+            if name:
+                if url:
+                    embed.set_author(name=name, icon_url=url)
+                else:
+                    embed.set_author(name=name)
         return await ctx.send(embed=embed)
 
     async def maybe_run_pending_db_tasks(self, ctx: commands.Context) -> None:
@@ -120,13 +121,13 @@ class MiscellaneousUtilities(MixinMeta, metaclass=CompositeMetaClass):
 
     async def update_external_status(self) -> bool:
         external = await self.config.use_external_lavalink()
-        if not external:
-            if self.player_manager is not None:
-                await self.player_manager.shutdown()
-            await self.config.use_external_lavalink.set(True)
-            return True
-        else:
+        if external:
             return False
+
+        if self.player_manager is not None:
+            await self.player_manager.shutdown()
+        await self.config.use_external_lavalink.set(True)
+        return True
 
     def rsetattr(self, obj, attr, val) -> None:
         pre, _, post = attr.rpartition(".")
@@ -177,15 +178,10 @@ class MiscellaneousUtilities(MixinMeta, metaclass=CompositeMetaClass):
         track_keys = track._info.keys()
         track_values = track._info.values()
         track_id = track.track_identifier
-        track_info = {}
-        for k, v in zip(track_keys, track_values):
-            track_info[k] = v
+        track_info = {k: v for k, v in zip(track_keys, track_values)}
         keys = ["track", "info", "extras"]
         values = [track_id, track_info]
-        track_obj = {}
-        for key, value in zip(keys, values):
-            track_obj[key] = value
-        return track_obj
+        return {key: value for key, value in zip(keys, values)}
 
     def time_convert(self, length: Union[int, str]) -> int:
         if isinstance(length, int):
@@ -196,8 +192,7 @@ class MiscellaneousUtilities(MixinMeta, metaclass=CompositeMetaClass):
             hr = int(match.group(1)) if match.group(1) else 0
             mn = int(match.group(2)) if match.group(2) else 0
             sec = int(match.group(3)) if match.group(3) else 0
-            pos = sec + (mn * 60) + (hr * 3600)
-            return pos
+            return sec + (mn * 60) + (hr * 3600)
         else:
             try:
                 return int(length)
@@ -220,8 +215,7 @@ class MiscellaneousUtilities(MixinMeta, metaclass=CompositeMetaClass):
                 remain = 0
         except AttributeError:
             remain = 0
-        queue_total_duration = remain + queue_dur
-        return queue_total_duration
+        return remain + queue_dur
 
     async def track_remaining_duration(self, ctx: commands.Context) -> int:
         player = lavalink.get_player(ctx.guild.id)
@@ -271,10 +265,9 @@ class MiscellaneousUtilities(MixinMeta, metaclass=CompositeMetaClass):
 
     async def get_lyrics_status(self, ctx: Context) -> bool:
         global _prefer_lyrics_cache
-        prefer_lyrics = _prefer_lyrics_cache.setdefault(
+        return _prefer_lyrics_cache.setdefault(
             ctx.guild.id, await self.config.guild(ctx.guild).prefer_lyrics()
         )
-        return prefer_lyrics
 
     async def data_schema_migration(self, from_version: int, to_version: int) -> None:
         database_entries = []

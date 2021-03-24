@@ -171,9 +171,7 @@ class IgnoreManager:
                 self._cached_channels[cat_id] = cat_ret
             else:
                 cat_ret = False
-        ret = chan_ret or cat_ret
-
-        return ret
+        return chan_ret or cat_ret
 
     async def set_ignored_channel(
         self, channel: Union[discord.TextChannel, discord.CategoryChannel], set_to: bool
@@ -421,8 +419,8 @@ class DisabledCogCache:
         gset = await self._config.custom("COG_DISABLE_SETTINGS", cog_name, guild_id).disabled()
         if gset is None:
             gset = await self._config.custom("COG_DISABLE_SETTINGS", cog_name, 0).disabled()
-            if gset is None:
-                gset = False
+        if gset is None:
+            gset = False
 
         self._disable_map[cog_name][guild_id] = gset
         return gset

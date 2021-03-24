@@ -57,7 +57,9 @@ class GlobalUniqueObjectFinder(commands.Converter):
 
         if ctx.guild is not None:
             async for member in AsyncIter(ctx.guild.members, steps=100):
-                if member.nick == arg and not any(obj.id == member.id for obj in maybe_matches):
+                if member.nick == arg and all(
+                    obj.id != member.id for obj in maybe_matches
+                ):
                     maybe_matches.append(member)
 
         if not maybe_matches:
